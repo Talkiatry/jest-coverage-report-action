@@ -28,6 +28,7 @@ const DEFAULT_OPTIONS: Options = {
         },
     },
     output: ['comment'],
+    coverageScope: 'all',
 };
 
 const annotations: Annotation[] = [

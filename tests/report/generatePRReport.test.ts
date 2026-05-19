@@ -26,6 +26,7 @@ const DEFAULT_OPTIONS: Options = {
         },
     },
     output: ['comment'],
+    coverageScope: 'all',
 };
 
 describe('generatePRReport', () => {

@@ -210,6 +210,7 @@ const defaultOptions: Options = {
         },
     },
     output: ['comment'],
+    coverageScope: 'all',
 };
 
 jest.mock('../src/typings/Options.ts');

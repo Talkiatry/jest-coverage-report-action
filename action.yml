@@ -51,6 +51,10 @@ inputs:
         required: false
         description: What output should action produce? `comment` - add comment to PR, `report-markdown` - report markdown text in "outputs.report".
         default: comment
+    coverage-scope:
+        required: false
+        description: 'Scope of coverage reporting and enforcement. "all" (default) uses the full project. "changed-lines" restricts to statements/branches/functions on lines added or modified in the PR diff, and skips base branch comparison.'
+        default: 'all'
 outputs:
     report:
         description: Generated markdown report. Exists only if input option "output" is set to "report-markdown".
@@ -75,3 +79,4 @@ runs:
               INPUT_BASE-COVERAGE-FILE: ${{ inputs.base-coverage-file }}
               INPUT_PRNUMBER: ${{ inputs.prnumber }}
               INPUT_OUTPUT: ${{ inputs.output }}
+              INPUT_COVERAGE-SCOPE: ${{ inputs.coverage-scope }}

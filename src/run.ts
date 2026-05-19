@@ -19,7 +19,9 @@ import {
 } from './stages/switchBranch';
 import { JsonReport } from './typings/JsonReport';
 import { getOptions } from './typings/Options';
+import { buildLineIndex } from './utils/buildLineIndex';
 import { createDataCollector, DataCollector } from './utils/DataCollector';
+import { filterCoverageMapToChangedLines } from './utils/filterCoverageMapToChangedLines';
 import { getNormalThreshold } from './utils/getNormalThreshold';
 import { getPrPatch } from './utils/getPrPatch';
 import { i18n } from './utils/i18n';
@@ -98,8 +100,33 @@ export const run = async (
         }
     );
 
-    if (headCoverage) {
-        dataCollector.add(headCoverage);
+    const [, filteredHeadCoverage] = await runStage(
+        'filterCoverage',
+        dataCollector,
+        async (skip) => {
+            if (
+                options.coverageScope !== 'changed-lines' ||
+                !isInPR ||
+                !isHeadCoverageGenerated
+            ) {
+                skip();
+            }
+
+            const octokit = getOctokit(options.token);
+            const patch = await getPrPatch(octokit, options);
+            const lineIndex = buildLineIndex(patch);
+            const filteredCoverageMap = filterCoverageMapToChangedLines(
+                headCoverage!,
+                lineIndex,
+                options.workingDirectory
+            );
+            return { ...headCoverage!, coverageMap: filteredCoverageMap };
+        }
+    );
+
+    const effectiveCoverage = filteredHeadCoverage ?? headCoverage;
+    if (effectiveCoverage) {
+        dataCollector.add(effectiveCoverage);
     }
 
     const [isSwitched] = await runStage(
@@ -112,7 +139,13 @@ export const run = async (
             // - this is not a PR
             // - this is the PR base branch
             // - a base coverage is provided
-            if (!isInPR || !base || !!options.baseCoverageFile) {
+            // - using changed-lines scope (base comparison is skipped)
+            if (
+                !isInPR ||
+                !base ||
+                !!options.baseCoverageFile ||
+                options.coverageScope === 'changed-lines'
+            ) {
                 skip();
             }
 
@@ -126,7 +159,10 @@ export const run = async (
         'baseCoverage',
         dataCollector,
         async (skip) => {
-            if (!isSwitched && !isHeadSwitched && !options.baseCoverageFile) {
+            if (
+                (!isSwitched && !isHeadSwitched && !options.baseCoverageFile) ||
+                options.coverageScope === 'changed-lines'
+            ) {
                 skip();
             }
 
@@ -163,7 +199,7 @@ export const run = async (
             }
 
             return checkThreshold(
-                headCoverage!,
+                effectiveCoverage!,
                 threshold!,
                 options.workingDirectory,
                 dataCollector as DataCollector<unknown>
@@ -226,6 +262,10 @@ export const run = async (
         );
     });
 
+    const coverageNote = filteredHeadCoverage
+        ? `> **Changed-lines coverage** — showing coverage for ${Object.keys(filteredHeadCoverage.coverageMap).length} modified file(s) only\n`
+        : undefined;
+
     const [isReportContentGenerated, summaryReport] = await runStage(
         'generateReportContent',
         dataCollector,
@@ -234,7 +274,8 @@ export const run = async (
                 dataCollector,
                 runReport,
                 options,
-                thresholdResults ?? []
+                thresholdResults ?? [],
+                coverageNote
             );
         }
     );

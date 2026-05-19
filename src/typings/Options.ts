@@ -10,6 +10,7 @@ export type AnnotationType = 'all' | 'none' | 'coverage' | 'failed-tests';
 export type PackageManagerType = 'npm' | 'yarn' | 'pnpm' | 'bun';
 export type SkipStepType = 'all' | 'none' | 'install';
 export type OutputType = 'comment' | 'report-markdown';
+export type CoverageScopeType = 'all' | 'changed-lines';
 
 export type GithubRepo = {
     clone_url: string;
@@ -41,6 +42,7 @@ export type Options = {
     prNumber: null | number;
     pullRequest: null | PullRequest;
     output: Array<OutputType>;
+    coverageScope: CoverageScopeType;
 };
 
 const validAnnotationOptions: Array<AnnotationType> = [
@@ -66,6 +68,11 @@ const validOutputTypeOptions: Array<OutputType> = [
     'report-markdown',
 ];
 
+const validCoverageScopeOptions: Array<CoverageScopeType> = [
+    'all',
+    'changed-lines',
+];
+
 const optionSchema = yup.object().shape({
     token: yup.string().required(),
     testScript: yup.string().required(),
@@ -89,6 +96,7 @@ const optionSchema = yup.object().shape({
         .required()
         .transform((_, originalValue: string) => originalValue.split(', '))
         .of(yup.string().required().oneOf(validOutputTypeOptions)),
+    coverageScope: yup.string().required().oneOf(validCoverageScopeOptions),
 });
 
 export const shouldInstallDeps = (skipStep: SkipStepType): Boolean =>
@@ -116,6 +124,7 @@ export const getOptions = async (): Promise<Options> => {
         getInput('prnumber') || context?.payload?.pull_request?.number
     );
     const output = getInput('output');
+    const coverageScope = getInput('coverage-scope') || 'all';
     let pullRequest = context?.payload?.pull_request || null;
 
     if (!pullRequest && !Number.isNaN(prNumber)) {
@@ -142,6 +151,7 @@ export const getOptions = async (): Promise<Options> => {
             prNumber: prNumber || null,
             pullRequest,
             output,
+            coverageScope,
         })) as Options;
 
         return options;

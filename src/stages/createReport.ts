@@ -23,7 +23,8 @@ export const createReport = (
     dataCollector: DataCollector<JsonReport>,
     runReport: TestRunReport | undefined,
     options: Options,
-    thresholdResults: ThresholdResult[]
+    thresholdResults: ThresholdResult[],
+    coverageNote?: string
 ): SummaryReport => {
     const { workingDirectory, customTitle } = options;
 
@@ -41,7 +42,9 @@ export const createReport = (
     const formattedReport = runReport ? formatRunReport(runReport) : '';
 
     let templateText = insertArgs(template, {
-        body: [formattedErrors, coverage, formattedReport].join('\n'),
+        body: [formattedErrors, coverageNote, coverage, formattedReport]
+            .filter((s): s is string => s !== undefined)
+            .join('\n'),
         dir: workingDirectory || '',
         tag: getReportTag(options),
         title: insertArgs(customTitle || i18n('summaryTitle'), {
@@ -59,9 +62,9 @@ export const createReport = (
         );
 
         templateText = insertArgs(template, {
-            body: [formattedErrors, reducedCoverage, formattedReport].join(
-                '\n'
-            ),
+            body: [formattedErrors, coverageNote, reducedCoverage, formattedReport]
+                .filter(Boolean)
+                .join('\n'),
             dir: workingDirectory || '',
             tag: getReportTag(options),
             title: insertArgs(customTitle || i18n('summaryTitle'), {

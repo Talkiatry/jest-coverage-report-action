@@ -275,6 +275,20 @@ Accepted values are:
 -   `coverage` - Will annotate those sections of your code that test did not cover. Limited to changed lines when used on a Pull Request
 -   `failed-tests` - Will annotate those sections of your code that failed test
 
+## Coverage scope
+
+By default, coverage is reported and enforced across the entire project. You can restrict reporting to only the lines added or modified in the PR diff using the `coverage-scope` option:
+
+```yml
+with:
+    coverage-scope: changed-lines
+```
+
+Accepted values are:
+
+-   `all` (default) - Report and enforce coverage across the entire project, with a comparison against the base branch
+-   `changed-lines` - Restrict coverage reporting and enforcement to statements, branches, and functions on lines added or modified in the PR diff. Skips base branch comparison.
+
 ## Outputs
 
 By default, action attaches comment to a pull request or commit. However, if you want to use other action for publishing report, you can specify `output: report-markdown`:

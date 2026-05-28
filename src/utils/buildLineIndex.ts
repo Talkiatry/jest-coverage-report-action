@@ -7,8 +7,10 @@ export function buildLineIndex(patchContent: string): LineIndex {
     const addedLines: LineIndex = {};
     for (const file of patch) {
         if (file.to) {
-            const lines: number[] = [];
-            addedLines[file.to] = lines;
+            if (!addedLines[file.to]) {
+                addedLines[file.to] = [];
+            }
+            const lines = addedLines[file.to]!;
             for (const chunk of file.chunks) {
                 for (const change of chunk.changes) {
                     if (change.type === 'add') {

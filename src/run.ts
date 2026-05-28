@@ -124,7 +124,13 @@ export const run = async (
         }
     );
 
-    const effectiveCoverage = filteredHeadCoverage ?? headCoverage;
+    const filteredFileCount = filteredHeadCoverage
+        ? Object.keys(filteredHeadCoverage.coverageMap).length
+        : -1;
+    const filteringApplied = filteredFileCount > 0;
+    const effectiveCoverage = filteringApplied
+        ? filteredHeadCoverage
+        : headCoverage;
     if (effectiveCoverage) {
         dataCollector.add(effectiveCoverage);
     }
@@ -262,8 +268,13 @@ export const run = async (
         );
     });
 
-    const coverageNote = filteredHeadCoverage
-        ? `> [!NOTE]\n> Coverage reflects **changed lines only** — metrics are scoped to statements, branches, and functions on lines added or modified in this PR (${Object.keys(filteredHeadCoverage.coverageMap).length} of ${Object.keys(headCoverage!.coverageMap).length} file(s)). No base branch comparison is shown.\n`
+    const totalFileCount = headCoverage
+        ? Object.keys(headCoverage.coverageMap).length
+        : 0;
+    const coverageNote = filteringApplied
+        ? `> [!NOTE]\n> Coverage reflects **changed lines only** — metrics are scoped to statements, branches, and functions on lines added or modified in this PR (${filteredFileCount} of ${totalFileCount} file(s)). No base branch comparison is shown.\n`
+        : filteredFileCount === 0
+        ? `> [!WARNING]\n> No changed source files were found in the coverage report. Showing full project coverage instead.\n`
         : undefined;
 
     const [isReportContentGenerated, summaryReport] = await runStage(

@@ -19,12 +19,12 @@ export const getSha = () =>
     context.payload.pull_request?.head.sha ??
     context.sha;
 
-const buildTitle = (options: Options): string => {
+const buildTitle = (options: Options, filteringApplied: boolean): string => {
     const { workingDirectory, customTitle, coverageScope } = options;
     const base = insertArgs(customTitle || i18n('summaryTitle'), {
         dir: workingDirectory ? `for \`${workingDirectory}\`` : '',
     });
-    return !customTitle && coverageScope === 'changed-lines'
+    return !customTitle && coverageScope === 'changed-lines' && filteringApplied
         ? `${base} (changed lines only)`
         : base;
 };
@@ -57,7 +57,7 @@ export const createReport = (
             .join('\n'),
         dir: workingDirectory || '',
         tag: getReportTag(options),
-        title: buildTitle(options),
+        title: buildTitle(options, !!coverageNote),
         sha: getSha(),
     });
 
@@ -75,7 +75,7 @@ export const createReport = (
                 .join('\n'),
             dir: workingDirectory || '',
             tag: getReportTag(options),
-            title: buildTitle(options),
+            title: buildTitle(options, !!coverageNote),
             sha: getSha(),
         });
 
@@ -86,7 +86,7 @@ export const createReport = (
                 }),
                 dir: workingDirectory || '',
                 tag: getReportTag(options),
-                title: buildTitle(options),
+                title: buildTitle(options, !!coverageNote),
                 sha: getSha(),
             });
         }

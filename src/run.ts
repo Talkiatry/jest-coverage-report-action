@@ -272,7 +272,7 @@ export const run = async (
         ? Object.keys(headCoverage.coverageMap).length
         : 0;
     const coverageNote = filteringApplied
-        ? `> [!NOTE]\n> Coverage reflects **changed lines only** — metrics are scoped to statements, branches, and functions on lines added or modified in this PR (${filteredFileCount} of ${totalFileCount} file(s)). No base branch comparison is shown.\n`
+        ? `> [!NOTE]\n> Coverage reflects metrics on lines added or modified in this PR only. Changed/modified ${filteredFileCount} of ${totalFileCount} file(s) in the project.\n`
         : filteredFileCount === 0
         ? `> [!WARNING]\n> No changed source files were found in the coverage report. Showing full project coverage instead.\n`
         : undefined;

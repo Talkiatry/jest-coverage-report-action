@@ -263,7 +263,7 @@ export const run = async (
     });
 
     const coverageNote = filteredHeadCoverage
-        ? `> **Changed-lines coverage** — showing coverage for ${Object.keys(filteredHeadCoverage.coverageMap).length} modified file(s) only\n`
+        ? `> [!NOTE]\n> Coverage reflects **changed lines only** — metrics are scoped to statements, branches, and functions on lines added or modified in this PR (${Object.keys(filteredHeadCoverage.coverageMap).length} of ${Object.keys(headCoverage!.coverageMap).length} file(s)). No base branch comparison is shown.\n`
         : undefined;
 
     const [isReportContentGenerated, summaryReport] = await runStage(

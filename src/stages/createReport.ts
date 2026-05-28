@@ -19,6 +19,16 @@ export const getSha = () =>
     context.payload.pull_request?.head.sha ??
     context.sha;
 
+const buildTitle = (options: Options): string => {
+    const { workingDirectory, customTitle, coverageScope } = options;
+    const base = insertArgs(customTitle || i18n('summaryTitle'), {
+        dir: workingDirectory ? `for \`${workingDirectory}\`` : '',
+    });
+    return !customTitle && coverageScope === 'changed-lines'
+        ? `${base} (changed lines only)`
+        : base;
+};
+
 export const createReport = (
     dataCollector: DataCollector<JsonReport>,
     runReport: TestRunReport | undefined,
@@ -26,7 +36,7 @@ export const createReport = (
     thresholdResults: ThresholdResult[],
     coverageNote?: string
 ): SummaryReport => {
-    const { workingDirectory, customTitle } = options;
+    const { workingDirectory } = options;
 
     const { errors, data } = dataCollector.get();
     const [headReport, baseReport] = data;
@@ -47,9 +57,7 @@ export const createReport = (
             .join('\n'),
         dir: workingDirectory || '',
         tag: getReportTag(options),
-        title: insertArgs(customTitle || i18n('summaryTitle'), {
-            dir: workingDirectory ? `for \`${workingDirectory}\`` : '',
-        }),
+        title: buildTitle(options),
         sha: getSha(),
     });
 
@@ -67,9 +75,7 @@ export const createReport = (
                 .join('\n'),
             dir: workingDirectory || '',
             tag: getReportTag(options),
-            title: insertArgs(customTitle || i18n('summaryTitle'), {
-                dir: workingDirectory ? `for \`${workingDirectory}\`` : '',
-            }),
+            title: buildTitle(options),
             sha: getSha(),
         });
 
@@ -80,9 +86,7 @@ export const createReport = (
                 }),
                 dir: workingDirectory || '',
                 tag: getReportTag(options),
-                title: insertArgs(customTitle || i18n('summaryTitle'), {
-                    dir: workingDirectory ? `for \`${workingDirectory}\`` : '',
-                }),
+                title: buildTitle(options),
                 sha: getSha(),
             });
         }
